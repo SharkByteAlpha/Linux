@@ -4,8 +4,8 @@ while true; do
     # Display menu
     echo "Choose an option:"
     echo "1. Secure SSH"
-    echo "2. Secure FTP (With VSFTPD)"
-    echo "3. Secure FTP (Without VSFTPD)"
+    echo "2. Secure VSFTPD"
+    echo "3. Secure FTP"
     echo "4. Secure MYSQL"
     echo "5. Secure PostgreSQL"
     echo "6. Exit"
@@ -45,8 +45,8 @@ systemctl reload ssh
 echo "SSH configuration updated. Please make sure you can log in with password authentication before closing the existing SSH session."
             ;;
         2)
-            # Option 2
-            echo "You selected Option 2."
+            # Secure VSFTPD
+            echo "Securing VSFTPD..."
             # Check if script is run as root
 if [ "$EUID" -ne 0 ]; then
     echo "Please run this script as root or using sudo."
