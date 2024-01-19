@@ -48,7 +48,62 @@ echo "SSH configuration secured. Please make sure you can log in with the specif
         2)
             # Option 2
             echo "You selected Option 2."
-            # Place your Option 2 logic here
+            # Check if script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root or using sudo."
+    exit 1
+fi
+
+# Install vsftpd (if not already installed)
+apt-get update
+apt-get install -y vsftpd
+
+# Backup vsftpd.conf file
+cp /etc/vsftpd.conf /etc/vsftpd.conf.bak
+
+# Configure vsftpd for a more secure setup
+cat <<EOL > /etc/vsftpd.conf
+listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+xferlog_std_format=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+ssl_enable=YES
+allow_anon_ssl=NO
+force_local_data_ssl=YES
+force_local_logins_ssl=YES
+ssl_tlsv1_2=YES
+ssl_sslv2=NO
+ssl_sslv3=NO
+require_ssl_reuse=NO
+ssl_ciphers=HIGH
+pasv_enable=YES
+pasv_min_port=10000
+pasv_max_port=10100
+allow_writeable_chroot=YES
+seccomp_sandbox=NO
+EOL
+
+# Create a user for FTP and set a password
+read -p "Enter the username for FTP: " ftp_user
+adduser $ftp_user
+
+# Restart vsftpd service
+systemctl restart vsftpd
+
+echo "vsftpd configured securely. Use the FTP user credentials for authentication."
+
             ;;
         3)
             # Option 3
