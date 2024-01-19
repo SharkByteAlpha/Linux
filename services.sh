@@ -6,7 +6,7 @@ while true; do
     echo "1. Secure SSH"
     echo "2. Secure FTP (With VSFTPD)"
     echo "3. Secure FTP (Without VSFTPD)"
-    echo "4. Option 4"
+    echo "4. Secure MYSQL"
     echo "5. Option 5"
     echo "6. Exit"
 
@@ -127,9 +127,35 @@ systemctl restart inetd
 echo "Traditional FTP configured securely."
             ;;
         4)
-            # Option 4
+            # MYSQL
             echo "You selected Option 4."
-            # Place your Option 4 logic here
+            # Check if script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root or using sudo."
+    exit 1
+fi
+
+# Backup MySQL configuration file
+cp /etc/mysql/mysql.conf.d/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf.bak
+
+# Set a strong root password
+mysql_root_password=$(openssl rand -base64 12)
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY '$mysql_root_password';"
+
+# Remove anonymous users
+mysql -e "DELETE FROM mysql.user WHERE User='';"
+
+# Remove remote root login
+mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+
+# Remove test database and access to it
+mysql -e "DROP DATABASE IF EXISTS test;"
+mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';"
+
+# Apply changes and restart MySQL service
+systemctl restart mysql
+
+echo "MySQL secured. Root password: $mysql_root_password"
             ;;
         5)
             # Option 5
