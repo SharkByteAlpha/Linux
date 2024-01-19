@@ -3,9 +3,9 @@
 while true; do
     # Display menu
     echo "Choose an option:"
-    echo "1. Securing SSH"
-    echo "2. Option 2"
-    echo "3. Option 3"
+    echo "1. Secure SSH"
+    echo "2. Secure FTP (With VSFTPD)"
+    echo "3. Secure FTP (VSFTPD)"
     echo "4. Option 4"
     echo "5. Option 5"
     echo "6. Exit"
@@ -30,11 +30,10 @@ cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 # Disable root login
 sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
 
-# Disable password authentication and only allow key-based authentication
-sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-
-# Set SSH protocol version to 2 only
-sed -i 's/#Protocol 2/Protocol 2/' /etc/ssh/sshd_config
+# Enable password authentication and disable key-based authentication
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication no/' /etc/ssh/sshd_config
 
 # Allow only specific users
 read -p "Enter the usernames allowed to SSH (space-separated): " allowed_users
@@ -43,7 +42,7 @@ sed -i "/AllowUsers/c\AllowUsers $allowed_users" /etc/ssh/sshd_config
 # Reload SSH service
 systemctl reload ssh
 
-echo "SSH configuration secured. Please make sure you can log in with the specified users before closing the existing SSH session."
+echo "SSH configuration updated. Please make sure you can log in with password authentication before closing the existing SSH session."
             ;;
         2)
             # Option 2
