@@ -3,8 +3,8 @@
 ####################################
 
 Do {
-    $test1 = Get-Content $env:SystemDrive\OHS_UB\users.txt
-    $test2 = Get-Content $env:SystemDrive\OHS_UB\admins.txt
+    $test1 = Get-Content $env:Linux-main\OHS_UB\users.txt
+    $test2 = Get-Content $env:Linux-main\OHS_UB\admins.txt
     if ([string]::IsNullOrWhitespace($test1)){
         Write-Host "Please add authorized users to users.txt"
     }
