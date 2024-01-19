@@ -5,7 +5,7 @@ while true; do
     echo "Choose an option:"
     echo "1. Secure SSH"
     echo "2. Secure FTP (With VSFTPD)"
-    echo "3. Secure FTP (VSFTPD)"
+    echo "3. Secure FTP (Without VSFTPD)"
     echo "4. Option 4"
     echo "5. Option 5"
     echo "6. Exit"
@@ -105,9 +105,26 @@ echo "vsftpd configured securely. Use the FTP user credentials for authenticatio
 
             ;;
         3)
-            # Option 3
-            echo "You selected Option 3."
-            # Place your Option 3 logic here
+            # Secure FTP (Without VSFTD)
+            echo "Securing FTP (Without VSFTD)..."
+            # Check if script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root or using sudo."
+    exit 1
+fi
+
+# Backup ftpd.conf file (assuming vsftpd is not installed)
+cp /etc/inetd.conf /etc/inetd.conf.bak
+
+# Configure ftpd for a more secure setup
+cat <<EOL > /etc/inetd.conf
+ftp     stream  tcp     nowait  root    /usr/sbin/tcpd  /usr/sbin/in.ftpd -l
+EOL
+
+# Restart inetd service
+systemctl restart inetd
+
+echo "Traditional FTP configured securely."
             ;;
         4)
             # Option 4
