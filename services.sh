@@ -7,7 +7,7 @@ while true; do
     echo "2. Secure FTP (With VSFTPD)"
     echo "3. Secure FTP (Without VSFTPD)"
     echo "4. Secure MYSQL"
-    echo "5. Option 5"
+    echo "5. Secure PostgreSQL"
     echo "6. Exit"
 
     # Read user input
@@ -128,7 +128,7 @@ echo "Traditional FTP configured securely."
             ;;
         4)
             # MYSQL
-            echo "You selected Option 4."
+            echo "Securing MYSQL"
             # Check if script is run as root
 if [ "$EUID" -ne 0 ]; then
     echo "Please run this script as root or using sudo."
@@ -158,9 +158,31 @@ systemctl restart mysql
 echo "MySQL secured. Root password: $mysql_root_password"
             ;;
         5)
-            # Option 5
-            echo "You selected Option 5."
-            # Place your Option 5 logic here
+            # PostgreSQL
+            echo "Securing PostgreSQL..."
+            # Check if script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root or using sudo."
+    exit 1
+fi
+
+# Backup PostgreSQL configuration file
+cp /etc/postgresql/{version}/main/postgresql.conf /etc/postgresql/{version}/main/postgresql.conf.bak
+
+# Set a strong password for the default 'postgres' user
+postgres_password=$(openssl rand -base64 12)
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$postgres_password';"
+
+# Update authentication method to use md5 for local connections
+sed -i "s/host    all             all             127.0.0.1\/32            md5/host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/{version}/main/pg_hba.conf
+
+# Disable remote connections to PostgreSQL
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = ''/" /etc/postgresql/{version}/main/postgresql.conf
+
+# Apply changes and restart PostgreSQL service
+systemctl restart postgresql
+
+echo "PostgreSQL secured. 'postgres' user password: $postgres_password"
             ;;
         6)
             # Exit
