@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Display menu
+echo "Choose an option:"
+echo "1. Secure SSH Config"
+echo "2. Secure FTP Config"
+echo "3. Exit"
+
+# Read user input
+read -p "Enter the number of your choice: " choice
+
+# Execute the selected script
+case $choice in
+    1)
+        # Secure SSH Config
+        echo "Running Secure SSH Config Script..."
+        # Check if script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root or using sudo."
+    exit 1
+fi
+
+# Backup sshd_config file
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+# Disable root login
+sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+
+# Enable password authentication and disable key-based authentication
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication no/' /etc/ssh/sshd_config
+
+# Allow only specific users
+read -p "Enter the usernames allowed to SSH (space-separated): " allowed_users
+sed -i "/AllowUsers/c\AllowUsers $allowed_users" /etc/ssh/sshd_config
+
+# Reload SSH service
+systemctl reload ssh
+
+echo "SSH configuration updated. Please make sure you can log in with password authentication before closing the existing SSH session."
+        ;;
+    2)
+        # Secure FTP Config
+        echo "Running Secure FTP Config Script..."
+        # Place your Customize UFW Ports script here or call it
+        ;;
+    3)
+        # Exit
+        echo "Exiting..."
+        exit 0
+        ;;
+    *)
+        # Invalid choice
+        echo "Invalid choice. Exiting..."
+        exit 1
+        ;;
+esac
